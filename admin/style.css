@@ -1,0 +1,273 @@
+table {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 14px;
+    border-collapse: collapse;
+    text-align: center;
+    width: 100%;
+}
+th, td:first-child {
+    background: #AFCDE7;
+    color: white;
+    padding: 10px 20px;
+    width: 30px;
+}
+th, td {
+    border-style: solid;
+    border-width: 0 1px 1px 0;
+    border-color: white;
+}
+td {
+    background: #D8E6F3;
+}
+th:first-child, td:first-child {
+    text-align: left;
+}
+.page_non{
+     margin: 1px;
+    background: #ff00ff;
+    text-decoration: none;
+    padding: 4px;
+    color: #000000;
+    display: inline-block;
+    height: 20px;
+    text-align: center;
+    border-radius: 2px;
+    border: 1px solid#000000;
+}
+.page{
+    margin: 1px;
+    background: #ffffff;
+    text-decoration: none;
+    padding: 4px;
+    color: #000000;
+    display: inline-block;
+    height: 20px;
+    text-align: center;
+    border-radius: 2px;
+    border: 1px solid#000000;
+}
+tr .com {
+    padding: 5px;
+}
+.metro {
+    list-style: none;
+    padding: 0;
+    margin: 30px 0 0 50px;
+    border-left: 5px solid #DAE4F1;
+}
+.metro li {line-height: 2em;}
+.metro ul {
+    margin: 20px 0 20px 15px;
+    padding: 0;
+    border: none;
+    list-style: none;
+}
+.metro ul:before, .metro ul:after {
+    content: "";
+    width: 5px;
+    height: 28px;
+    background: #DAE4F1;
+    position: relative;
+    display: block;
+    left: -9px;
+}
+.metro ul:before {
+    transform: rotate(-45deg);
+    margin-top: -15px;
+}
+.metro ul:after {
+    transform: rotate(45deg);
+    bottom: -20px;
+}
+.metro ul li {border-left: 5px solid #DAE4F1;}
+.metro ul li:first-child {
+    margin-top: -5px;
+    padding-top: 5px;
+}
+.metro ul li:last-child {
+    padding-bottom: 9px;
+    margin-bottom: -25px;
+}
+.metro a {
+    text-decoration: none;
+    display: block;
+    font-family: 'Noto Sans', sans-serif;
+    color: #4A4B4D;
+}
+.metro a:before {
+    content: "";
+    display: inline-block;
+    background: #CA682D;
+    width: 12px;
+    height: 12px;
+    left: -9px;
+    position: relative;
+    border-radius: 50%;
+    margin-right: .5em;
+}
+
+.block_menu{
+    width: 20%;
+    float: left;
+}
+.block_content{
+    width: 77%;
+    float: right;
+}
+.content{
+    width: 100%;
+    background: #c1c1c1;
+    display: inline-block;
+}
+#chat_root{
+    padding:10px;
+    background: #D8E6F3;
+    border:1px solid#ffff;
+}
+#chat_root a{
+    background: #D8E6F3;
+}
+.content_chat{
+    padding:20px;
+    font-size:20px;
+    background: #74b5f1;
+    border:1px solid#ffff;
+}
+.chat_button{
+
+}
+.name{
+
+}
+.message_user{font-size: 12px;color: #6671fb;}
+.message{margin-bottom: 10px;margin-top:  10px;}
+.message_time{font-size: 12px;color: #000;}
+.item{padding: 10px;background: #4040401a;margin-bottom: 10px;}
+.send_mess{
+    margin-top: 20px;
+}
+.message_delete{
+    margin-top: 10px;
+}
+
+.frame{
+    display:none;
+    position: absolute;
+    background: #000000c7;
+    width: 100%;
+    height: 100%;
+}
+.add_part{
+    background: white;
+    width: 20%;
+
+    position: relative;
+    top: 30%;
+    left: 40%;
+    /*transform: translate(-50%, -50%);*/
+}
+.searchInput{
+width: 100%;
+}
+.search{
+}
+
+
+
+@media (min-width:480px)  { 
+.searchInput{
+	width: 100%;
+    font-size: 22px;
+}
+.search{
+    font-size: 22px;
+}
+.block_menu{
+    width: 20%;
+    float: left;
+    font-size: 22px;
+}
+.block_content{
+    width: 80%;
+    float: left;
+   
+}
+.content{
+    
+    width: 100%;
+    background: #c1c1c1;
+    display: inline-block;
+}
+table {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 22px;
+    border-collapse: collapse;
+    text-align: center;
+    width: 100%;
+}
+th, td:first-child {
+    background: #AFCDE7;
+    color: white;
+    padding: 10px 20px;
+    width: 30px;
+}
+th, td {
+    border-style: solid;
+    border-width: 0 1px 1px 0;
+    border-color: white;
+	 font-size: 22px;
+}
+td {
+    background: #D8E6F3;
+}
+th:first-child, td:first-child {
+    text-align: left;
+}
+tr .com {
+    padding: 5px;
+ 	font-size: 36px;
+}
+tr .info {
+  
+ 	font-size: 36px;
+}
+.info_tr {
+   
+ 	font-size: 18px;
+}
+.metro {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 5px;
+    border-left: 5px solid #DAE4F1;
+}
+.but{
+	height:50px;
+	width:200px;
+}
+.but100{
+	height:50px;
+	width:200px;
+}
+button{
+	height:50px;
+	width:100px;
+}
+
+.back{
+	height:50px;
+	width:200px;
+    display: block;
+}
+.searchInput{
+	height:40px;
+	
+}
+.searchDay{
+	height:40px;
+	
+}
+
+}
+
+

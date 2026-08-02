@@ -1,0 +1,9 @@
+#AuthType Basic
+#AuthName admin
+#require valid-user
+
+AuthType Basic
+AuthName "Private zone. Only for administrator!"
+AuthUserFile /home/provodnik/public_html/api/poezd/parse/admin/.htpasswd
+require valid-user
+

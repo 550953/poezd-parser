@@ -1,0 +1,62 @@
+# ===== КРЕДЫ =====
+api/connection.php
+admin/.htpasswd
+.env
+
+# ===== БОЛЬШИЕ JSON-ФАЙЛЫ (данные, не код) =====
+api/codes.json
+api/code_ya.json
+api/station.json
+api/station_new_json_file.json
+api/station_json_file.json
+api/station_json_file1.json
+api/yandex_file.json
+api/name_train.json
+api/id_st.json
+api/trains_list_cache.json
+new_api/годовой_график.json
+new_api/year_file.json
+new_api/yandex_file.json
+
+# ===== ДАННЫЕ ПОЛЬЗОВАТЕЛЕЙ =====
+save_history/history/
+save_history/local_history/
+save_history/local_history_ios/
+save_history/local_history_new/
+passInfo/
+
+# ===== СЧЁТЧИКИ (runtime) =====
+counter.txt
+counter_mar.txt
+admin/counter.txt
+
+# ===== МЕДИАФАЙЛЫ =====
+sounds/
+../image/
+
+# ===== БЭКАПЫ (все варианты имён) =====
+*.bak*
+
+# ===== ЛОГИ =====
+*.log
+error_log
+
+# ===== ЗАВИСИМОСТИ =====
+admin/fire_base/vendor/
+vendor/
+
+# ===== PYTHON =====
+admin/test_magasin_kakurin_sm/.venv/
+**/__pycache__/
+*.pyc
+
+# ===== OS / IDE =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ===== ПОСТОРОННИЕ ПАПКИ =====
+admin/test_magasin_kakurin_sm/
+historylu72/
