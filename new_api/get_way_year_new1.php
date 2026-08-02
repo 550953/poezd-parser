@@ -212,7 +212,7 @@ function ParseTrainInfo($trains)
             $table_day = $year -> find('table[class="wg-calendar__calendar"] td');
             foreach($table_day as $all_day){
                  $all= $all_day -> find('span[class="wg-calendar__day"]',0) -> find('div[class="wg-calendar__tip"]');
-                 $all[0]->outertext = '';
+                 if(isset($all[0])) { $all[0]->outertext = ''; }
                  $day =  $all_day -> find('span[class="wg-calendar__day"]',0)->innertext;
                  $class = $all_day -> find('span[class="wg-calendar__day"]',0)->attr['class'];
                   if($class == "wg-calendar__day wg-calendar__day_disabled" || $class == "wg-calendar__day wg-calendar__day_active" || $class == "wg-calendar__day wg-calendar__day_active wg-calendar__day_current" || $class == "wg-calendar__day wg-calendar__day_disabled wg-calendar__day_current"){

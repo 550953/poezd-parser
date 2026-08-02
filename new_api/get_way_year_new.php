@@ -396,7 +396,7 @@ function ParseTrainInfo($trains)
             $k = 0;
             foreach($table_day as $all_day){
                  $all= $all_day -> find('span[class="rys-calendar__day"]',0) -> find('div[class="rys-calendar__tip"]');
-                 $all[0]->outertext = '';
+                 if(isset($all[0])) { $all[0]->outertext = ''; }
                  $day =  $all_day -> find('span[class="rys-calendar__day"]',0)->innertext;
                  $class = $all_day -> find('span[class="rys-calendar__day"]',0)->attr['class'];
                   if($class == "rys-calendar__day rys-calendar__day_disabled" || $class == "rys-calendar__day rys-calendar__day_active" || $class == "rys-calendar__day rys-calendar__day_active rys-calendar__day_current" || $class == "rys-calendar__day rys-calendar__day_disabled rys-calendar__day_current"){
