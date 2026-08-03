@@ -1,4 +1,10 @@
 <?php
+require_once __DIR__ . '/BsLogger.php';
+@include_once '/home/provodnik/logs/poezd-diagnostics.php';
+if (!function_exists('poezd_diag_log')) { function poezd_diag_log($event, $fields = array()) {} }
+if (!function_exists('poezd_diag_hash')) { function poezd_diag_hash($value) { return 'unknown'; } }
+if (!function_exists('poezd_diag_request_id')) { function poezd_diag_request_id() { return 'unknown'; } }
+if (!function_exists('poezd_diag_platform')) { function poezd_diag_platform($value) { return 'unknown'; } }
 ini_set('display_errors', 0);
 error_reporting(0);
 
@@ -10,8 +16,49 @@ $link = mysqli_connect($host, $user, $password, $database)
 mysqli_set_charset($link, "utf8");
 // выполняем операции с базой данных
 
+$poezd_diag_id = poezd_diag_request_id();
+$poezd_diag_started = microtime(true);
+$poezd_diag_ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
+$poezd_diag_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '/api/poezd/parse/api/save_user.php';
+$_bs_req_start = microtime(true);
+
 $postData = file_get_contents('php://input');
 $data = json_decode($postData, true);
+$poezd_diag_action = null;
+if (is_array($data)) {
+    if (isset($data['email']) && $data['email'] !== null) $poezd_diag_action = 'registration_email';
+    elseif (isset($data['huawei']) && $data['huawei'] !== null) $poezd_diag_action = 'registration_huawei';
+    elseif (isset($data['saveYandex']) && $data['saveYandex'] !== null) $poezd_diag_action = 'registration_yandex';
+    elseif (isset($data['addYandex']) && $data['addYandex'] !== null) $poezd_diag_action = 'link_yandex';
+    elseif (isset($data['get_sub_ios_email']) && $data['get_sub_ios_email'] !== null) $poezd_diag_action = 'get_sub_ios_email';
+    elseif (isset($data['get_sub_ios']) && $data['get_sub_ios'] !== null) $poezd_diag_action = 'get_sub_ios';
+}
+$poezd_diag_context = array(
+    'request_id' => $poezd_diag_id,
+    'action' => $poezd_diag_action,
+    'ip' => $poezd_diag_ip,
+    'request_uri' => $poezd_diag_uri,
+    'method' => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'unknown',
+    'platform' => poezd_diag_platform(isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''),
+    'input_bytes' => strlen((string) $postData),
+    'json_error' => json_last_error()
+);
+if ($poezd_diag_action !== null) {
+    poezd_diag_log('save_user.start', $poezd_diag_context);
+    register_shutdown_function(function () use ($poezd_diag_id, $poezd_diag_started, $poezd_diag_ip, $poezd_diag_uri) {
+        $last = error_get_last();
+        $fatalTypes = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING);
+        $fatalType = ($last && in_array($last['type'], $fatalTypes, true)) ? $last['type'] : null;
+        poezd_diag_log('save_user.finish', array(
+            'request_id' => $poezd_diag_id,
+            'ip' => $poezd_diag_ip,
+            'request_uri' => $poezd_diag_uri,
+            'duration_ms' => round((microtime(true) - $poezd_diag_started) * 1000, 2),
+            'fatal_type' => $fatalType
+        ));
+    });
+}
+if ($poezd_diag_action !== null) poezd_diag_log('save_user.mysql_connected', array_merge($poezd_diag_context, array('db' => 'connected')));
 
 
 if(isset($data['get_user_yandex']) && $data['get_user_yandex'] != null){
@@ -155,11 +202,15 @@ if(isset($data['isHaveUserApp']) && $data['isHaveUserApp'] != null){
     isHaveUser($data['isHaveUserApp'],$link);
 }
 if(isset($data['email']) && $data['email'] != null){
+    poezd_diag_log('save_user.registration_received', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'provider' => 'email', 'uid_hash' => poezd_diag_hash(isset($data['uid']) ? $data['uid'] : ''), 'email_hash' => poezd_diag_hash($data['email'])));
     saveUser($data['version'] ?? null, $data['email'],$data['uid'],$data['date_create'],$data['date_end'], $data['name'],$link);
+    BsLogger::request('/api/poezd/parse/api/save_user.php',200,round((microtime(true)-$_bs_req_start)*1000,2),$data['uid']??null);
 }
 
 if(isset($data['huawei']) && $data['huawei'] != null){
+    poezd_diag_log('save_user.registration_received', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'provider' => 'huawei', 'uid_hash' => poezd_diag_hash(isset($data['uid']) ? $data['uid'] : ''), 'email_hash' => poezd_diag_hash(isset($data['email']) ? $data['email'] : '')));
     saveUser($data['version'] ?? null, $data['email'],$data['uid'],$data['date_create'],$data['date_end'], $data['name'],$link);
+    BsLogger::request('/api/poezd/parse/api/save_user.php',200,round((microtime(true)-$_bs_req_start)*1000,2),$data['uid']??null);
 }
 
 if(isset($data['get_sub']) &&  $data['get_sub'] != null){
@@ -167,9 +218,11 @@ if(isset($data['get_sub']) &&  $data['get_sub'] != null){
 }
 if(isset($data['get_sub_ios']) && $data['get_sub_ios'] != null){
     getSubIos($data['get_sub_ios'],$link);
+    BsLogger::request('/api/poezd/parse/api/save_user.php',200,round((microtime(true)-$_bs_req_start)*1000,2),$data['get_sub_ios']);
 }
 if(isset($data['get_sub_ios_email']) && $data['get_sub_ios_email'] != null){
     getSubIosMail($data['get_sub_ios_email'],$link);
+    BsLogger::request('/api/poezd/parse/api/save_user.php',200,round((microtime(true)-$_bs_req_start)*1000,2));
 }
 
 
@@ -362,6 +415,9 @@ function getSub($uid, $link){
     echo json_encode($return_arr);
 }
 function getSubIos($uid, $link){
+global $poezd_diag_id;
+$poezd_diag_query_started = microtime(true);
+if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.start', array('request_id' => $poezd_diag_id, 'uid_hash' => poezd_diag_hash($uid)));
     // FIX: always return {"end": N} so iOS spinner stops correctly
     $id_user = null;
     $query = "SELECT * FROM users WHERE `uid`='".$uid."'";
@@ -372,6 +428,7 @@ function getSubIos($uid, $link){
         }
     }
     if($id_user === null){
+        if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.finish', array('request_id' => $poezd_diag_id, 'found' => false, 'duration_ms' => round((microtime(true) - $poezd_diag_query_started) * 1000, 2)));
         echo json_encode(array("end" => 0));
         return;
     }
@@ -389,10 +446,17 @@ function getSubIos($uid, $link){
             $return_arr = array("end" => 0);
         }
     }
+    if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.finish', array('request_id' => $poezd_diag_id, 'duration_ms' => round((microtime(true) - $poezd_diag_query_started) * 1000, 2)));
+    $now_ts = time();
+    $end_ts = isset($return_arr['end']) ? $return_arr['end'] : 0;
+    BsLogger::event('info','save_user',($end_ts > $now_ts ? 'subscription_active' : 'subscription_expired'),['uid_hash'=>substr(md5($uid),0,8),'end'=>$end_ts]);
     echo json_encode($return_arr);
 }
 
 function getSubIosMail($uid, $link){
+global $poezd_diag_id;
+$poezd_diag_query_started = microtime(true);
+if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.start', array('request_id' => $poezd_diag_id, 'email_hash' => poezd_diag_hash($uid)));
     // FIX: always return {"end": N} so iOS spinner stops correctly
     $id_user = null;
     $query = "SELECT `id` FROM users WHERE `email`='".$uid."'";
@@ -403,6 +467,7 @@ function getSubIosMail($uid, $link){
         }
     }
     if($id_user === null){
+        if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.finish', array('request_id' => $poezd_diag_id, 'found' => false, 'duration_ms' => round((microtime(true) - $poezd_diag_query_started) * 1000, 2)));
         echo json_encode(array("end" => 0));
         return;
     }
@@ -420,6 +485,7 @@ function getSubIosMail($uid, $link){
             $return_arr = array("end" => 0);
         }
     }
+    if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.finish', array('request_id' => $poezd_diag_id, 'duration_ms' => round((microtime(true) - $poezd_diag_query_started) * 1000, 2)));
     echo json_encode($return_arr);
 }
 
@@ -458,35 +524,34 @@ function getSubId($uid, $link){
 
 
 function saveSub ($id_user, $date_start, $date_end, $link){
-   
-    $return_arr = array();
-    $query = "INSERT INTO subscription VALUES (NULL,'".$id_user."','".$date_start."', '".$date_end."')";
+    global $poezd_diag_id, $poezd_diag_ip;
+    $query = "INSERT INTO subscription (`id_user`, `date_start`, `date_end`) VALUES (" . (int) $id_user . ",'" . (int) $date_start . "','" . (int) $date_end . "')";
     $result = mysqli_query($link, $query);
     if($result){
-       $return_arr = array("message" => true);
+       poezd_diag_log('save_user.subscription_inserted', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'user_id' => (int) $id_user));
+       echo json_encode(array('message' => true));
     }else{
-        $return_arr = array("message" => false);
+       poezd_diag_log('save_user.subscription_insert_failed', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'user_id' => (int) $id_user, 'mysql_errno' => mysqli_errno($link), 'mysql_error' => mysqli_error($link)));
+       echo json_encode(array('message' => false, 'error' => 'subscription_insert_failed'));
     }
-echo json_encode($return_arr);
 }
 
 function saveUser ($version, $email, $uid,$date_create,$date_end, $name, $link){
- if($version == null)
-    	$date_end = $date_create;
-    $return_arr = array();
-	$rand = strtoupper(bin2hex(openssl_random_pseudo_bytes(4)));
-	//INSERT INTO `users`(`id`, `uid`, `name`, `email`, `date_create`, `promo`) VALUES  (NULL,'".$uid."','".$name."', '".$email."', '".$date_create."', '".$rand."')
-    $query = "INSERT INTO `users`(`id`, `uid`, `name`, `email`, `date_create`, `promo`) VALUES  (NULL,'".$uid."','".$name."', '".$email."', '".$date_create."', '".$rand."')";
+    global $poezd_diag_id, $poezd_diag_ip;
+    if($version == null) $date_end = $date_create;
+    $uidHash = poezd_diag_hash($uid);
+    $emailHash = poezd_diag_hash($email);
+    poezd_diag_log('save_user.user_insert_start', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'uid_hash' => $uidHash, 'email_hash' => $emailHash));
+    $query = "INSERT INTO `users`(`uid`, `name`, `email`, `date_create`, `promo`) VALUES ('" . mysqli_real_escape_string($link, $uid) . "','" . mysqli_real_escape_string($link, $name) . "','" . mysqli_real_escape_string($link, $email) . "','" . (int) $date_create . "','" . strtoupper(bin2hex(openssl_random_pseudo_bytes(4))) . "')";
     $result = mysqli_query($link, $query);
     if($result){
        $id_user = mysqli_insert_id($link);
+       poezd_diag_log('save_user.user_inserted', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'uid_hash' => $uidHash, 'user_id' => $id_user));
        saveSub($id_user, $date_create, $date_end, $link);
- 
     }else{
-        $return_arr = array("message" => false);
-        echo json_encode($return_arr);
+        poezd_diag_log('save_user.user_insert_failed', array('request_id' => $poezd_diag_id, 'ip' => $poezd_diag_ip, 'uid_hash' => $uidHash, 'mysql_errno' => mysqli_errno($link), 'mysql_error' => mysqli_error($link)));
+        echo json_encode(array('message' => false, 'error' => 'user_insert_failed'));
     }
-
 }
 
 function getUser ($uid, $link){
@@ -529,6 +594,7 @@ return $user_id;
 
 
 function isHaveUser ($uid, $link){
+    BsLogger::event('info','save_user','user_login',['uid_hash'=>substr(md5($uid),0,8)]);
     $return_arr = array();
     $query = "SELECT * FROM users WHERE `uid`='".$uid."'";
     

@@ -23,9 +23,14 @@ $postData = file_get_contents('php://input');
 $data = json_decode($postData, true);
 
 //if(isset($_GET['train']))
+require_once __DIR__ . '/BsLogger.php';
+$_bs_cron_start = microtime(true);
+BsLogger::cron('load_new','started',0);
 saveTrain($link);
+BsLogger::event('info','load_new','station_db_updated',['job'=>'saveTrain']);
 refreshTrainsCache($link);
 clearComment($link);
+BsLogger::cron('load_new','finished',round(microtime(true)-$_bs_cron_start,3));
 //refreshSubUser($link);
 
 
