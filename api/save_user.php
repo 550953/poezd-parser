@@ -420,11 +420,13 @@ $poezd_diag_query_started = microtime(true);
 if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.start', array('request_id' => $poezd_diag_id, 'uid_hash' => poezd_diag_hash($uid)));
     // FIX: always return {"end": N} so iOS spinner stops correctly
     $id_user = null;
+    $date_create_ms = 0;
     $query = "SELECT * FROM users WHERE `uid`='".$uid."'";
     $fetch = mysqli_query($link,$query);
     if($fetch){
         while ($row = mysqli_fetch_array($fetch, MYSQLI_ASSOC)) {
             $id_user = $row['id'];
+            $date_create_ms = isset($row['date_create']) ? (int)$row['date_create'] : 0;
         }
     }
     if($id_user === null){
@@ -443,7 +445,15 @@ if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.sta
             $found = true;
         }
         if(!$found){
-            $return_arr = array("end" => 0);
+            // 14-day trial from registration date
+            $trial_days = 14;
+            $trial_end_ts = intdiv($date_create_ms, 1000) + $trial_days * 86400;
+            if(time() < $trial_end_ts){
+                $return_arr = array("end" => $trial_end_ts, "trial" => 1);
+                BsLogger::event('info','save_user','trial_active',['uid_hash'=>substr(md5($uid),0,8),'trial_end'=>$trial_end_ts]);
+            } else {
+                $return_arr = array("end" => 0);
+            }
         }
     }
     if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.finish', array('request_id' => $poezd_diag_id, 'duration_ms' => round((microtime(true) - $poezd_diag_query_started) * 1000, 2)));
@@ -459,11 +469,13 @@ $poezd_diag_query_started = microtime(true);
 if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.start', array('request_id' => $poezd_diag_id, 'email_hash' => poezd_diag_hash($uid)));
     // FIX: always return {"end": N} so iOS spinner stops correctly
     $id_user = null;
-    $query = "SELECT `id` FROM users WHERE `email`='".$uid."'";
+    $date_create_ms_mail = 0;
+    $query = "SELECT `id`, `date_create` FROM users WHERE `email`='".$uid."'";
     $fetch = mysqli_query($link,$query);
     if($fetch){
         while ($row = mysqli_fetch_array($fetch, MYSQLI_ASSOC)) {
             $id_user = $row['id'];
+            $date_create_ms_mail = isset($row['date_create']) ? (int)$row['date_create'] : 0;
         }
     }
     if($id_user === null){
@@ -482,7 +494,13 @@ if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.st
             $found = true;
         }
         if(!$found){
-            $return_arr = array("end" => 0);
+            $trial_days = 14;
+            $trial_end_ts = intdiv($date_create_ms_mail, 1000) + $trial_days * 86400;
+            if(time() < $trial_end_ts){
+                $return_arr = array("end" => $trial_end_ts, "trial" => 1);
+            } else {
+                $return_arr = array("end" => 0);
+            }
         }
     }
     if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.finish', array('request_id' => $poezd_diag_id, 'duration_ms' => round((microtime(true) - $poezd_diag_query_started) * 1000, 2)));
