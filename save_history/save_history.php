@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../api/BsLogger.php';
+$_bs_t = microtime(true);
 // error_reporting(E_ALL);
 // ini_set("display_errors", 1);
 header('Content-type: application/json');
@@ -59,5 +61,13 @@ if (move_uploaded_file($_FILES[$name]['tmp_name'], $uploadfile)) {
 }
 
 
-?>
-
+// BsLogger request log
+$_bs_action = null;
+if     (isset($_POST["name"]))     $_bs_action = "upload_android";
+elseif (isset($_POST["name_ios"])) $_bs_action = "upload_ios";
+elseif (isset($_POST["uuid"]))     $_bs_action = "check_android";
+elseif (isset($_POST["uuid_ios"])) $_bs_action = "check_ios";
+elseif (isset($_POST["get_ios"]))  $_bs_action = "get_ios";
+elseif (isset($_POST["get_new"]))  $_bs_action = "get_new";
+BsLogger::request("/api/poezd/parse/save_history/save_history.php", 200, round((microtime(true) - $_bs_t) * 1000, 2));
+BsLogger::event("info", "save_history", $_bs_action ?? "unknown", ["duration_ms" => round((microtime(true) - $_bs_t) * 1000, 2)]);
