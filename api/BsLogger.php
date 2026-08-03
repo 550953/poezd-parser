@@ -47,6 +47,23 @@ class BsLogger
         self::push('error', 'error', $message, $ctx);
     }
 
+    /** Warning shorthand */
+    public static function warn(string $module, string $eventType, array $ctx = []): void
+    {
+        self::push('warning', $module, $eventType, $ctx);
+    }
+
+    /** MySQL error — logs errno + error string automatically */
+    public static function mysqlError(string $context, $link, array $extra = []): void
+    {
+        $errno = ($link !== false && $link !== null) ? mysqli_errno($link) : 0;
+        $error = ($link !== false && $link !== null) ? mysqli_error($link) : 'no_link';
+        self::push('error', 'mysql', $context, array_merge(
+            ['mysql_errno' => $errno, 'mysql_error' => $error],
+            $extra
+        ));
+    }
+
     // ---------------------------------------------------------------- helpers
 
     public static function platform(string $ua): string
@@ -64,15 +81,19 @@ class BsLogger
             register_shutdown_function([self::class, 'flush']);
             self::$registered = true;
         }
-        $ms = sprintf('%03d', (int)(microtime(true) * 1000) % 1000);
+        $ms  = sprintf('%03d', (int)(microtime(true) * 1000) % 1000);
+        $ip  = isset($_SERVER['REMOTE_ADDR'])      ? (string)$_SERVER['REMOTE_ADDR']      : null;
+        $ua  = isset($_SERVER['HTTP_USER_AGENT'])  ? (string)$_SERVER['HTTP_USER_AGENT']  : null;
         $entry = array_merge([
-            'dt'      => gmdate('Y-m-d\TH:i:s.') . $ms . 'Z',
-            'level'   => $level,
-            'logger'  => $logger,
-            'message' => $message,
+            'dt'        => gmdate('Y-m-d\TH:i:s.') . $ms . 'Z',
+            'level'     => $level,
+            'logger'    => $logger,
+            'message'   => $message,
+            'client_ip' => $ip,
+            'platform'  => $ua !== null ? self::platform($ua) : null,
         ], $ctx);
         // strip null values
-        $entry = array_filter($entry, function($v) { return $v !== null; });
+        $entry = array_filter($entry, function ($v) { return $v !== null; });
         self::$buffer[] = $entry;
     }
 
