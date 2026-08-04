@@ -444,8 +444,8 @@ if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_user_query.sta
             $return_arr = array("end" => $end);
             $found = true;
         }
-        if(!$found){
-            // 14-day trial from registration date
+        if(!$found || ($found && $end <= time())){
+            // 14-day trial from registration date (also applies if sub exists but expired)
             $trial_days = 14;
             $trial_end_ts = intdiv($date_create_ms, 1000) + $trial_days * 86400;
             if(time() < $trial_end_ts){
@@ -493,7 +493,7 @@ if (isset($poezd_diag_id)) poezd_diag_log('save_user.subscription_email_query.st
             $return_arr = array("end" => $end);
             $found = true;
         }
-        if(!$found){
+        if(!$found || ($found && $end <= time())){
             $trial_days = 14;
             $trial_end_ts = intdiv($date_create_ms_mail, 1000) + $trial_days * 86400;
             if(time() < $trial_end_ts){
